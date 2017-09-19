@@ -8,13 +8,14 @@ die() {
 if [ -e /etc/apache2/envvars.orig ]; then
   # On container restart we create a fresh copy of environment variables
   cp -f /etc/apache2/envvars.orig /etc/apache2/envvars
+  rm /var/run/apache2/apache2.pid
 else
   # On a fresh start we save the original environment variables to the side
   cp -f /etc/apache2/envvars /etc/apache2/envvars.orig
 fi
 
-[[ -z "$ENV_DOCKER_REGISTRY_HOST" ]] && die "Missing environment variable: ENV_DOCKER_REGISTRY_HOST=url-to-your-registry" 
-[[ -z "$ENV_DOCKER_REGISTRY_PORT" ]] && ENV_DOCKER_REGISTRY_PORT=80 
+[[ -z "$ENV_DOCKER_REGISTRY_HOST" ]] && die "Missing environment variable: ENV_DOCKER_REGISTRY_HOST=url-to-your-registry"
+[[ -z "$ENV_DOCKER_REGISTRY_PORT" ]] && ENV_DOCKER_REGISTRY_PORT=80
 [[ -z "$ENV_REGISTRY_PROXY_FQDN" ]] && ENV_REGISTRY_PROXY_FQDN=$ENV_DOCKER_REGISTRY_HOST
 [[ -z "$ENV_REGISTRY_PROXY_PORT" ]] && ENV_REGISTRY_PROXY_PORT=$ENV_DOCKER_REGISTRY_PORT
 
@@ -49,12 +50,12 @@ fi
 # Optionally enable Kerberos authentication and do some parameter checks
 if [ -n "$ENV_AUTH_USE_KERBEROS" ]; then
 
-  [[ -z "$ENV_AUTH_NAME" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_NAME" 
-  [[ -z "$ENV_AUTH_KRB5_KEYTAB" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_KRB5_KEYTAB" 
-  [[ -z "$ENV_AUTH_KRB_REALMS" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_KRB_REALMS" 
-  [[ -z "$ENV_AUTH_KRB_SERVICE_NAME" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_KRB_SERVICE_NAME" 
+  [[ -z "$ENV_AUTH_NAME" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_NAME"
+  [[ -z "$ENV_AUTH_KRB5_KEYTAB" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_KRB5_KEYTAB"
+  [[ -z "$ENV_AUTH_KRB_REALMS" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_KRB_REALMS"
+  [[ -z "$ENV_AUTH_KRB_SERVICE_NAME" ]] && die "Missing environment variable for Kerberos: ENV_AUTH_KRB_SERVICE_NAME"
 
-  a2enmod auth_kerb 
+  a2enmod auth_kerb
 
   echo "export USE_KERBEROS_AUTH=$ENV_AUTH_USE_KERBEROS" >> /etc/apache2/envvars
   echo "export AUTH_NAME=\"$ENV_AUTH_NAME\"" >> /etc/apache2/envvars
@@ -75,7 +76,7 @@ if [ -n "$ENV_USE_SSL" ]; then
 fi
 
 if [ $needModSsl -ne 0 ]; then
-  a2enmod ssl 
+  a2enmod ssl
 else
   a2dismod ssl
 fi
